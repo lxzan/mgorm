@@ -45,3 +45,12 @@ func (c *FindBuilder) All(v interface{}) *FindBuilder {
 	c.err = cursor.All(newContext(), v)
 	return c
 }
+
+func (c *FindBuilder) One(v interface{}) *FindBuilder {
+	var opt = options.FindOne()
+	if c.opt.Projection != nil {
+		opt.SetProjection(c.opt.Projection)
+	}
+	c.err = c.col.FindOne(newContext(), c.filter, opt).Decode(v)
+	return c
+}

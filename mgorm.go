@@ -22,18 +22,55 @@ func (c *MgORM) Collection(name string) *MgORM {
 	return c
 }
 
-func (c *MgORM) FindAll(filter interface{}) *FindBuilder {
+func (c *MgORM) Find(filter interface{}) *FindBuilder {
 	if filter == nil {
 		filter = bson.M{}
 	}
-	opt := options.Find()
 	return &FindBuilder{
 		col:    c.col,
-		opt:    opt,
+		opt:    options.Find(),
 		filter: filter,
 	}
 }
 
 func (c *MgORM) Count(filter interface{}) (int64, error) {
 	return c.col.CountDocuments(newContext(), filter)
+}
+
+func (c *MgORM) UpdateMany(filter interface{}, update interface{}) *UpdateBuilder {
+	return &UpdateBuilder{
+		multi:  true,
+		opt:    options.Update(),
+		col:    c.col,
+		filter: filter,
+		update: update,
+	}
+}
+
+func (c *MgORM) UpdateOne(filter interface{}, update interface{}) *UpdateBuilder {
+	return &UpdateBuilder{
+		multi:  false,
+		opt:    options.Update(),
+		col:    c.col,
+		filter: filter,
+		update: update,
+	}
+}
+
+func (c *MgORM) DeleteMany(filter interface{}) *DeleteBuilder {
+	return &DeleteBuilder{
+		multi:  true,
+		opt:    options.Delete(),
+		col:    c.col,
+		filter: filter,
+	}
+}
+
+func (c *MgORM) DeleteOne(filter interface{}) *DeleteBuilder {
+	return &DeleteBuilder{
+		multi:  false,
+		opt:    options.Delete(),
+		col:    c.col,
+		filter: filter,
+	}
 }
