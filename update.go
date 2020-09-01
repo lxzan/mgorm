@@ -1,11 +1,13 @@
 package mgorm
 
 import (
+	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UpdateBuilder struct {
+	ctx    context.Context
 	multi  bool
 	opt    *options.UpdateOptions
 	col    *mongo.Collection
@@ -29,9 +31,9 @@ func (c *UpdateBuilder) SetUpsert(f bool) {
 
 func (c *UpdateBuilder) Do() *UpdateBuilder {
 	if c.multi {
-		c.result, c.err = c.col.UpdateMany(newContext(), c.filter, c.update, c.opt)
+		c.result, c.err = c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
 	} else {
-		c.result, c.err = c.col.UpdateOne(newContext(), c.filter, c.update, c.opt)
+		c.result, c.err = c.col.UpdateOne(c.ctx, c.filter, c.update, c.opt)
 	}
 	return c
 }

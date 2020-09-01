@@ -1,11 +1,13 @@
 package mgorm
 
 import (
+	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type FindBuilder struct {
+	ctx    context.Context
 	col    *mongo.Collection
 	opt    *options.FindOptions
 	filter interface{}
@@ -37,12 +39,12 @@ func (c *FindBuilder) Sort(sort interface{}) *FindBuilder {
 }
 
 func (c *FindBuilder) All(v interface{}) *FindBuilder {
-	cursor, err := c.col.Find(newContext(), c.filter, c.opt)
+	cursor, err := c.col.Find(c.ctx, c.filter, c.opt)
 	if err != nil {
 		c.err = err
 		return c
 	}
-	c.err = cursor.All(newContext(), v)
+	c.err = cursor.All(c.ctx, v)
 	return c
 }
 
@@ -51,6 +53,6 @@ func (c *FindBuilder) One(v interface{}) *FindBuilder {
 	if c.opt.Projection != nil {
 		opt.SetProjection(c.opt.Projection)
 	}
-	c.err = c.col.FindOne(newContext(), c.filter, opt).Decode(v)
+	c.err = c.col.FindOne(c.ctx, c.filter, opt).Decode(v)
 	return c
 }

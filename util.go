@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func newContext() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+func WithTimeout(d time.Duration) context.Context {
+	ctx, _ := context.WithTimeout(context.Background(), d)
 	return ctx
 }

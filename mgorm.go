@@ -1,6 +1,7 @@
 package mgorm
 
 import (
+	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,7 +12,7 @@ type MgORM struct {
 	col *mongo.Collection
 }
 
-func NewMgORM(db *mongo.Database) *MgORM {
+func NewORM(db *mongo.Database) *MgORM {
 	return &MgORM{
 		db: db,
 	}
@@ -22,23 +23,25 @@ func (c *MgORM) Collection(name string) *MgORM {
 	return c
 }
 
-func (c *MgORM) Find(filter interface{}) *FindBuilder {
+func (c *MgORM) Find(ctx context.Context, filter interface{}) *FindBuilder {
 	if filter == nil {
 		filter = bson.M{}
 	}
 	return &FindBuilder{
+		ctx:    ctx,
 		col:    c.col,
 		opt:    options.Find(),
 		filter: filter,
 	}
 }
 
-func (c *MgORM) Count(filter interface{}) (int64, error) {
-	return c.col.CountDocuments(newContext(), filter)
+func (c *MgORM) Count(ctx context.Context, filter interface{}) (int64, error) {
+	return c.col.CountDocuments(ctx, filter)
 }
 
-func (c *MgORM) UpdateMany(filter interface{}, update interface{}) *UpdateBuilder {
+func (c *MgORM) UpdateMany(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
 	return &UpdateBuilder{
+		ctx:    ctx,
 		multi:  true,
 		opt:    options.Update(),
 		col:    c.col,
@@ -47,8 +50,9 @@ func (c *MgORM) UpdateMany(filter interface{}, update interface{}) *UpdateBuilde
 	}
 }
 
-func (c *MgORM) UpdateOne(filter interface{}, update interface{}) *UpdateBuilder {
+func (c *MgORM) UpdateOne(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
 	return &UpdateBuilder{
+		ctx:    ctx,
 		multi:  false,
 		opt:    options.Update(),
 		col:    c.col,
@@ -57,8 +61,9 @@ func (c *MgORM) UpdateOne(filter interface{}, update interface{}) *UpdateBuilder
 	}
 }
 
-func (c *MgORM) DeleteMany(filter interface{}) *DeleteBuilder {
+func (c *MgORM) DeleteMany(ctx context.Context, filter interface{}) *DeleteBuilder {
 	return &DeleteBuilder{
+		ctx:    ctx,
 		multi:  true,
 		opt:    options.Delete(),
 		col:    c.col,
@@ -66,11 +71,25 @@ func (c *MgORM) DeleteMany(filter interface{}) *DeleteBuilder {
 	}
 }
 
-func (c *MgORM) DeleteOne(filter interface{}) *DeleteBuilder {
+func (c *MgORM) DeleteOne(ctx context.Context, filter interface{}) *DeleteBuilder {
 	return &DeleteBuilder{
+		ctx:    ctx,
 		multi:  false,
 		opt:    options.Delete(),
 		col:    c.col,
 		filter: filter,
 	}
+}
+
+func (c *MgORM) NewTransaction(ctx context.Context, callback func(tx mongo.Session) error) error {
+	session, err := c.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+
+	err = callback(session)
+	if err != nil {
+		return session.AbortTransaction(ctx)
+	}
+	return session.CommitTransaction(ctx)
 }
