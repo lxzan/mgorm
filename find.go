@@ -11,11 +11,6 @@ type FindBuilder struct {
 	col    *mongo.Collection
 	opt    *options.FindOptions
 	filter interface{}
-	err    error
-}
-
-func (c *FindBuilder) Error() error {
-	return c.err
 }
 
 func (c *FindBuilder) Select(fields interface{}) *FindBuilder {
@@ -38,21 +33,18 @@ func (c *FindBuilder) Sort(sort interface{}) *FindBuilder {
 	return c
 }
 
-func (c *FindBuilder) All(v interface{}) *FindBuilder {
+func (c *FindBuilder) All(v interface{}) error {
 	cursor, err := c.col.Find(c.ctx, c.filter, c.opt)
 	if err != nil {
-		c.err = err
-		return c
+		return err
 	}
-	c.err = cursor.All(c.ctx, v)
-	return c
+	return cursor.All(c.ctx, v)
 }
 
-func (c *FindBuilder) One(v interface{}) *FindBuilder {
+func (c *FindBuilder) One(v interface{}) error {
 	var opt = options.FindOne()
 	if c.opt.Projection != nil {
 		opt.SetProjection(c.opt.Projection)
 	}
-	c.err = c.col.FindOne(c.ctx, c.filter, opt).Decode(v)
-	return c
+	return c.col.FindOne(c.ctx, c.filter, opt).Decode(v)
 }

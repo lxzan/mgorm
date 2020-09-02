@@ -7,28 +7,16 @@ import (
 )
 
 type DeleteBuilder struct {
-	multi  bool
 	ctx    context.Context
 	filter interface{}
 	opt    *options.DeleteOptions
 	col    *mongo.Collection
-	err    error
-	result *mongo.DeleteResult
 }
 
-func (c *DeleteBuilder) Error() error {
-	return c.err
+func (c *DeleteBuilder) One() (*mongo.DeleteResult, error) {
+	return c.col.DeleteOne(c.ctx, c.filter, c.opt)
 }
 
-func (c *DeleteBuilder) GetResult() *mongo.DeleteResult {
-	return c.result
-}
-
-func (c *DeleteBuilder) Exec() *DeleteBuilder {
-	if c.multi {
-		c.result, c.err = c.col.DeleteMany(c.ctx, c.filter, c.opt)
-	} else {
-		c.result, c.err = c.col.DeleteOne(c.ctx, c.filter, c.opt)
-	}
-	return c
+func (c *DeleteBuilder) All() (*mongo.DeleteResult, error) {
+	return c.col.DeleteMany(c.ctx, c.filter, c.opt)
 }

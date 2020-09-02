@@ -8,32 +8,20 @@ import (
 
 type UpdateBuilder struct {
 	ctx    context.Context
-	multi  bool
 	opt    *options.UpdateOptions
 	col    *mongo.Collection
 	filter interface{}
 	update interface{}
-	err    error
-	result *mongo.UpdateResult
-}
-
-func (c *UpdateBuilder) Error() error {
-	return c.err
-}
-
-func (c *UpdateBuilder) GetResult() *mongo.UpdateResult {
-	return c.result
 }
 
 func (c *UpdateBuilder) SetUpsert(f bool) {
 	c.opt.SetUpsert(f)
 }
 
-func (c *UpdateBuilder) Exec() *UpdateBuilder {
-	if c.multi {
-		c.result, c.err = c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
-	} else {
-		c.result, c.err = c.col.UpdateOne(c.ctx, c.filter, c.update, c.opt)
-	}
-	return c
+func (c *UpdateBuilder) One() (*mongo.UpdateResult, error) {
+	return c.col.UpdateOne(c.ctx, c.filter, c.update, c.opt)
+}
+
+func (c *UpdateBuilder) All() (*mongo.UpdateResult, error) {
+	return c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
 }

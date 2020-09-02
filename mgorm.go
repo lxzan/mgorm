@@ -40,10 +40,9 @@ func (c *MgORM) Count(ctx context.Context, filter interface{}) (int64, error) {
 	return c.col.CountDocuments(ctx, filter)
 }
 
-func (c *MgORM) UpdateMany(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
+func (c *MgORM) Update(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
 	return &UpdateBuilder{
 		ctx:    ctx,
-		multi:  true,
 		opt:    options.Update(),
 		col:    c.col,
 		filter: filter,
@@ -51,31 +50,9 @@ func (c *MgORM) UpdateMany(ctx context.Context, filter interface{}, update inter
 	}
 }
 
-func (c *MgORM) UpdateOne(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
-	return &UpdateBuilder{
-		ctx:    ctx,
-		multi:  false,
-		opt:    options.Update(),
-		col:    c.col,
-		filter: filter,
-		update: update,
-	}
-}
-
-func (c *MgORM) DeleteMany(ctx context.Context, filter interface{}) *DeleteBuilder {
+func (c *MgORM) Delete(ctx context.Context, filter interface{}) *DeleteBuilder {
 	return &DeleteBuilder{
 		ctx:    ctx,
-		multi:  true,
-		opt:    options.Delete(),
-		col:    c.col,
-		filter: filter,
-	}
-}
-
-func (c *MgORM) DeleteOne(ctx context.Context, filter interface{}) *DeleteBuilder {
-	return &DeleteBuilder{
-		ctx:    ctx,
-		multi:  false,
 		opt:    options.Delete(),
 		col:    c.col,
 		filter: filter,
