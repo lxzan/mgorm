@@ -24,7 +24,7 @@ func (c *DeleteBuilder) GetResult() *mongo.DeleteResult {
 	return c.result
 }
 
-func (c *DeleteBuilder) Do() *DeleteBuilder {
+func (c *DeleteBuilder) Exec() *DeleteBuilder {
 	if c.multi {
 		c.result, c.err = c.col.DeleteMany(c.ctx, c.filter, c.opt)
 	} else {

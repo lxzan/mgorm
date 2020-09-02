@@ -29,7 +29,7 @@ func (c *UpdateBuilder) SetUpsert(f bool) {
 	c.opt.SetUpsert(f)
 }
 
-func (c *UpdateBuilder) Do() *UpdateBuilder {
+func (c *UpdateBuilder) Exec() *UpdateBuilder {
 	if c.multi {
 		c.result, c.err = c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
 	} else {

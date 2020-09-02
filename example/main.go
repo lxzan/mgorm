@@ -20,7 +20,7 @@ func main() {
 	CatchError(err)
 	CatchError(client.Connect(context.Background()))
 
-	orm := mgorm.NewORM(client.Database("casbin")).Collection("operate_log")
+	orm := mgorm.NewORM(client.Database("casbin"), "operate_log")
 
 	var results = make([]struct {
 		Id primitive.ObjectID `json:"id" bson:"_id"`
