@@ -2,6 +2,8 @@ package mgorm
 
 import (
 	"context"
+
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -13,7 +15,11 @@ type FindBuilder struct {
 	filter interface{}
 }
 
-func (c *FindBuilder) Select(fields interface{}) *FindBuilder {
+func (c *FindBuilder) Select(keys ...string) *FindBuilder {
+	var fields = bson.M{}
+	for _, key := range keys {
+		fields[key] = 1
+	}
 	c.opt.SetProjection(fields)
 	return c
 }
