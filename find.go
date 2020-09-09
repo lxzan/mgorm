@@ -42,9 +42,9 @@ func (c *FindBuilder) Sort(sort interface{}) *FindBuilder {
 func (c *FindBuilder) All(v interface{}) error {
 	cursor, err := c.col.Find(c.ctx, c.filter, c.opt)
 	if err != nil {
-		return err
+		return errorWrapper(err)
 	}
-	return cursor.All(c.ctx, v)
+	return errorWrapper(cursor.All(c.ctx, v))
 }
 
 func (c *FindBuilder) One(v interface{}) error {
@@ -52,5 +52,5 @@ func (c *FindBuilder) One(v interface{}) error {
 	if c.opt.Projection != nil {
 		opt.SetProjection(c.opt.Projection)
 	}
-	return c.col.FindOne(c.ctx, c.filter, opt).Decode(v)
+	return errorWrapper(c.col.FindOne(c.ctx, c.filter, opt).Decode(v))
 }

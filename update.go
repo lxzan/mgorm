@@ -19,9 +19,17 @@ func (c *UpdateBuilder) SetUpsert(f bool) {
 }
 
 func (c *UpdateBuilder) One() (*mongo.UpdateResult, error) {
-	return c.col.UpdateOne(c.ctx, c.filter, c.update, c.opt)
+	result, err := c.col.UpdateOne(c.ctx, c.filter, c.update, c.opt)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
 }
 
 func (c *UpdateBuilder) All() (*mongo.UpdateResult, error) {
-	return c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
+	result, err := c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
 }

@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"github.com/lxzan/mgorm"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
 func CatchError(err error) {
@@ -20,12 +19,17 @@ func main() {
 	CatchError(err)
 	CatchError(client.Connect(context.Background()))
 
-	orm := mgorm.NewORM(client.Database("casbin"), "operate_log")
-
 	var results = make([]struct {
-		Id primitive.ObjectID `json:"id" bson:"_id"`
+		Id    string `json:"id" bson:"_id"`
+		Total int64  `json:"total" bson:"total"`
 	}, 0)
-
-	q := orm.Find(mgorm.WithTimeout(time.Second), nil).Limit(3).All(&results)
-	println(&q)
+	orm := mgorm.NewORM(client.Database("casbin"), "casbin_rule")
+	err = orm.
+		Aggregate(context.Background()).
+		Group("v2", bson.M{
+			"total": bson.M{"$sum": 1},
+		}).
+		Sort(bson.M{"_id": -1}).
+		All(&results)
+	println(&err)
 }

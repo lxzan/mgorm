@@ -8,9 +8,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var errorWrapper = func(err error) error {
+	return err
+}
+
+func SetErrorWrapper(fn func(err error) error) {
+	errorWrapper = fn
+}
+
 type MgORM struct {
 	db  *mongo.Database
 	col *mongo.Collection
+}
+
+type Option struct {
+	Collection string
+	WrapError  func(err error) error
 }
 
 func NewORM(db *mongo.Database, collection string) *MgORM {
@@ -37,7 +50,11 @@ func (c *MgORM) Find(ctx context.Context, filter interface{}) *FindBuilder {
 }
 
 func (c *MgORM) Count(ctx context.Context, filter interface{}) (int64, error) {
-	return c.col.CountDocuments(ctx, filter)
+	count, err := c.col.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, errorWrapper(err)
+	}
+	return count, nil
 }
 
 func (c *MgORM) Update(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
@@ -59,38 +76,21 @@ func (c *MgORM) Delete(ctx context.Context, filter interface{}) *DeleteBuilder {
 	}
 }
 
-func (c *MgORM) InsertOne(ctx context.Context, document interface{}) (primitive.ObjectID, error) {
-	result, err := c.col.InsertOne(ctx, document)
-	if err != nil {
-		return primitive.ObjectID{}, err
-	}
-	return result.InsertedID.(primitive.ObjectID), nil
-}
-
-func (c *MgORM) InsertMany(ctx context.Context, documents []interface{}) ([]primitive.ObjectID, error) {
-	results, err := c.col.InsertMany(ctx, documents)
-	if err != nil {
-		return nil, err
-	}
-
-	var ids = make([]primitive.ObjectID, 0)
-	for _, item := range results.InsertedIDs {
-		ids = append(ids, item.(primitive.ObjectID))
-	}
-	return ids, nil
+func (c *MgORM) Insert(ctx context.Context) *InsertBuilder {
+	return &InsertBuilder{ctx: ctx, col: c.col}
 }
 
 func (c *MgORM) NewTransaction(ctx context.Context, callback func(tx mongo.Session) error) error {
 	session, err := c.db.Client().StartSession()
 	if err != nil {
-		return err
+		return errorWrapper(err)
 	}
 
 	err = callback(session)
 	if err != nil {
-		return session.AbortTransaction(ctx)
+		return errorWrapper(session.AbortTransaction(ctx))
 	}
-	return session.CommitTransaction(ctx)
+	return errorWrapper(session.CommitTransaction(ctx))
 }
 
 func (c *MgORM) CreateIndex(keys []string, name string, unique bool) error {
@@ -100,7 +100,50 @@ func (c *MgORM) CreateIndex(keys []string, name string, unique bool) error {
 	}
 	_, err := c.col.Indexes().CreateOne(Context(), mongo.IndexModel{
 		Keys:    keys,
-		Options: opt,
+		Options: opt.SetBackground(true),
 	})
-	return err
+	return errorWrapper(err)
+}
+
+func (c *MgORM) FindById(ctx context.Context, id string, result interface{}) error {
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errorWrapper(err)
+	}
+	var filter = bson.M{"_id": objId}
+	return errorWrapper(c.col.FindOne(ctx, filter).Decode(result))
+}
+
+func (c *MgORM) UpdateById(ctx context.Context, id string, update interface{}) (*mongo.UpdateResult, error) {
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	var filter = bson.M{"_id": objId}
+	result, err := c.col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
+}
+
+func (c *MgORM) DeleteById(ctx context.Context, id string) (*mongo.DeleteResult, error) {
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	var filter = bson.M{"_id": objId}
+	result, err := c.col.DeleteOne(ctx, filter)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
+}
+
+func (c *MgORM) Aggregate(ctx context.Context) *AggregateBuilder {
+	return &AggregateBuilder{
+		ctx:      ctx,
+		col:      c.col,
+		pipeline: bson.A{},
+	}
 }

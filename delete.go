@@ -14,9 +14,17 @@ type DeleteBuilder struct {
 }
 
 func (c *DeleteBuilder) One() (*mongo.DeleteResult, error) {
-	return c.col.DeleteOne(c.ctx, c.filter, c.opt)
+	result, err := c.col.DeleteOne(c.ctx, c.filter, c.opt)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
 }
 
 func (c *DeleteBuilder) All() (*mongo.DeleteResult, error) {
-	return c.col.DeleteMany(c.ctx, c.filter, c.opt)
+	result, err := c.col.DeleteMany(c.ctx, c.filter, c.opt)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
 }
