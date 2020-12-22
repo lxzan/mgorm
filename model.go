@@ -64,8 +64,13 @@ func (c *Model) CreateIndex(keys []string, name string, unique bool) error {
 	if name != "" {
 		opt.SetName(name)
 	}
+
+	var d = bson.D{}
+	for _, key := range keys {
+		d = append(d, bson.E{Key: key, Value: 1})
+	}
 	_, err := c.col.Indexes().CreateOne(Context(), mongo.IndexModel{
-		Keys:    keys,
+		Keys:    d,
 		Options: opt.SetBackground(true),
 	})
 	return errorWrapper(err)
