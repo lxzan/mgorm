@@ -12,5 +12,12 @@ func WithTimeout(d time.Duration) context.Context {
 
 // default context
 func Context() context.Context {
-	return WithTimeout(15 * time.Second)
+	return WithTimeout(10 * time.Second)
+}
+
+func WithWrap(ctx context.Context) context.Context {
+	if ctx == nil {
+		return Context()
+	}
+	return ctx
 }

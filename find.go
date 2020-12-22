@@ -24,7 +24,7 @@ func (c *FindBuilder) Select(keys ...string) *FindBuilder {
 	return c
 }
 
-func (c *FindBuilder) Offset(num int64) *FindBuilder {
+func (c *FindBuilder) Skip(num int64) *FindBuilder {
 	c.opt.SetSkip(num)
 	return c
 }

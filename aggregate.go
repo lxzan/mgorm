@@ -36,9 +36,9 @@ func (c *AggregateBuilder) Limit(limit int64) *AggregateBuilder {
 	return c
 }
 
-func (c *AggregateBuilder) Offset(offset int64) *AggregateBuilder {
+func (c *AggregateBuilder) Skip(skip int64) *AggregateBuilder {
 	var p = bson.M{
-		"$skip": offset,
+		"$skip": skip,
 	}
 	c.pipeline = append(c.pipeline, p)
 	return c
