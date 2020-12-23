@@ -11,23 +11,18 @@ type InsertBuilder struct {
 	col *mongo.Collection
 }
 
-func (c *InsertBuilder) One(document interface{}) (primitive.ObjectID, error) {
+func (c *InsertBuilder) One(document interface{}) (interface{}, error) {
 	result, err := c.col.InsertOne(c.ctx, document)
 	if err != nil {
 		return primitive.ObjectID{}, errorWrapper(err)
 	}
-	return result.InsertedID.(primitive.ObjectID), nil
+	return result.InsertedID, nil
 }
 
-func (c *InsertBuilder) All(documents []interface{}) ([]primitive.ObjectID, error) {
+func (c *InsertBuilder) All(documents []interface{}) ([]interface{}, error) {
 	results, err := c.col.InsertMany(c.ctx, documents)
 	if err != nil {
 		return nil, errorWrapper(err)
 	}
-
-	var ids = make([]primitive.ObjectID, 0)
-	for _, item := range results.InsertedIDs {
-		ids = append(ids, item.(primitive.ObjectID))
-	}
-	return ids, nil
+	return results.InsertedIDs, nil
 }

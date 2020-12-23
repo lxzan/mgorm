@@ -52,5 +52,11 @@ func (c *FindBuilder) One(v interface{}) error {
 	if c.opt.Projection != nil {
 		opt.SetProjection(c.opt.Projection)
 	}
+	if c.opt.Sort != nil {
+		opt.SetSort(c.opt.Sort)
+	}
+	if c.opt.Skip != nil {
+		opt.SetSkip(*c.opt.Skip)
+	}
 	return errorWrapper(c.col.FindOne(c.ctx, c.filter, opt).Decode(v))
 }

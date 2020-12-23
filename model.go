@@ -16,6 +16,10 @@ func (c *Model) Collection() *mongo.Collection {
 	return c.col
 }
 
+func (c *Model) Ctx() context.Context {
+	return Context()
+}
+
 func (c *Model) Find(ctx context.Context, filter interface{}) *FindBuilder {
 	if filter == nil {
 		filter = bson.M{}
