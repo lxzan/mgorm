@@ -2,6 +2,7 @@ package mgorm
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -28,6 +29,22 @@ func (c *UpdateBuilder) One() (*mongo.UpdateResult, error) {
 
 func (c *UpdateBuilder) All() (*mongo.UpdateResult, error) {
 	result, err := c.col.UpdateMany(c.ctx, c.filter, c.update, c.opt)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
+}
+
+func (c *UpdateBuilder) SetOne() (*mongo.UpdateResult, error) {
+	result, err := c.col.UpdateOne(c.ctx, c.filter, bson.M{"$set": c.update}, c.opt)
+	if err != nil {
+		return nil, errorWrapper(err)
+	}
+	return result, nil
+}
+
+func (c *UpdateBuilder) SetAll() (*mongo.UpdateResult, error) {
+	result, err := c.col.UpdateMany(c.ctx, c.filter, bson.M{"$set": c.update}, c.opt)
 	if err != nil {
 		return nil, errorWrapper(err)
 	}
