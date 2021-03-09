@@ -44,8 +44,12 @@ func (c *AggregateBuilder) Skip(skip int64) *AggregateBuilder {
 	return c
 }
 
-func (c *AggregateBuilder) Group(key string, m bson.M) *AggregateBuilder {
-	m["_id"] = "$" + key
+func (c *AggregateBuilder) Group(key interface{}, m bson.M) *AggregateBuilder {
+	if s, ok := key.(string); ok {
+		m["_id"] = "$" + s
+	} else if key == nil {
+		m["_id"] = nil
+	}
 	var m1 = bson.M{
 		"$group": m,
 	}
