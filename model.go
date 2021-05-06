@@ -16,8 +16,8 @@ func (c *Model) Collection() *mongo.Collection {
 	return c.col
 }
 
-func (c *Model) Ctx() context.Context {
-	return Context()
+func (c *Model) Context() context.Context {
+	return NewContext()
 }
 
 func (c *Model) Find(ctx context.Context, filter interface{}) *FindBuilder {
@@ -38,6 +38,11 @@ func (c *Model) Count(ctx context.Context, filter interface{}) (int64, error) {
 		return 0, errorWrapper(err)
 	}
 	return count, nil
+}
+
+func (c *Model) Exists(ctx context.Context, filter interface{}) bool {
+	num, _ := c.col.CountDocuments(WithWrap(ctx), filter, options.Count().SetLimit(1))
+	return num > 0
 }
 
 func (c *Model) Update(ctx context.Context, filter interface{}, update interface{}) *UpdateBuilder {
@@ -73,7 +78,7 @@ func (c *Model) CreateIndex(keys []string, name string, unique bool) error {
 	for _, key := range keys {
 		d = append(d, bson.E{Key: key, Value: 1})
 	}
-	_, err := c.col.Indexes().CreateOne(Context(), mongo.IndexModel{
+	_, err := c.col.Indexes().CreateOne(c.Context(), mongo.IndexModel{
 		Keys:    d,
 		Options: opt.SetBackground(true),
 	})
