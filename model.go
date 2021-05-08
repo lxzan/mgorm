@@ -127,3 +127,11 @@ func (c *Model) Aggregate(ctx context.Context) *AggregateBuilder {
 		pipeline: bson.A{},
 	}
 }
+
+func (c *Model) ReplaceOne(ctx context.Context, filter bson.M, set bson.M, setOnInsert bson.M) (*mongo.UpdateResult, error) {
+	var update = bson.M{
+		"$set":         set,
+		"$setOnInsert": setOnInsert,
+	}
+	return c.Update(ctx, filter, update).SetUpsert(true).One()
+}
